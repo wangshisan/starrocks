@@ -21,6 +21,7 @@ import com.starrocks.http.BaseResponse;
 import com.starrocks.http.rest.TransactionResult;
 import com.starrocks.http.rest.transaction.TransactionOperationParams.Channel;
 import com.starrocks.server.GlobalStateMgr;
+import com.starrocks.sql.ast.UserIdentity;
 import com.starrocks.thrift.TNetworkAddress;
 import org.apache.commons.lang3.Validate;
 import org.apache.logging.log4j.LogManager;
@@ -49,6 +50,7 @@ public class TransactionWithChannelHandler implements TransactionOperationHandle
         String label = txnOperationParams.getLabel();
         Channel channel = txnOperationParams.getChannel();
         LOG.info("Handle transaction with channel info, label: {}", label);
+        UserIdentity userIdentity = request.getConnectContext().getCurrentUserIdentity();
 
         TransactionResult result = new TransactionResult();
         switch (txnOperation) {
@@ -59,7 +61,8 @@ public class TransactionWithChannelHandler implements TransactionOperationHandle
                 }
 
                 GlobalStateMgr.getCurrentState().getStreamLoadMgr().beginLoadTask(
-                        dbName, tableName, label, timeoutMillis, channel.getNum(), channel.getId(), result);
+                        dbName, tableName, label, timeoutMillis, channel.getNum(),
+                        channel.getId(), result, userIdentity);
                 return new ResultWrapper(result);
             case TXN_PREPARE:
                 GlobalStateMgr.getCurrentState().getStreamLoadMgr().prepareLoadTask(

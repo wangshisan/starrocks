@@ -39,6 +39,7 @@ import com.starrocks.persist.metablock.SRMetaBlockID;
 import com.starrocks.persist.metablock.SRMetaBlockReader;
 import com.starrocks.persist.metablock.SRMetaBlockWriter;
 import com.starrocks.server.GlobalStateMgr;
+import com.starrocks.sql.ast.UserIdentity;
 import com.starrocks.thrift.TNetworkAddress;
 import io.netty.handler.codec.http.HttpHeaders;
 import org.apache.logging.log4j.LogManager;
@@ -98,7 +99,8 @@ public class StreamLoadMgr implements MemoryTrackable {
     }
 
     public void beginLoadTask(String dbName, String tableName, String label, long timeoutMillis,
-                              int channelNum, int channelId, TransactionResult resp) throws UserException {
+                              int channelNum, int channelId, TransactionResult resp,
+                              UserIdentity userIdentity) throws UserException {
         StreamLoadTask task = null;
         Database db = checkDbName(dbName);
         long dbId = db.getId();
@@ -124,7 +126,7 @@ public class StreamLoadMgr implements MemoryTrackable {
                 task.beginTxn(channelId, channelNum, resp);
                 return;
             }
-            task = createLoadTask(db, tableName, label, timeoutMillis, channelNum, channelId);
+            task = createLoadTask(db, tableName, label, timeoutMillis, channelNum, channelId, userIdentity);
             LOG.info(new LogBuilder(LogKey.STREAM_LOAD_TASK, task.getId())
                     .add("msg", "create load task").build());
             addLoadTask(task);
@@ -179,7 +181,8 @@ public class StreamLoadMgr implements MemoryTrackable {
     }
 
     public StreamLoadTask createLoadTask(Database db, String tableName, String label, long timeoutMillis,
-                                         int channelNum, int channelId) throws UserException {
+                                         int channelNum, int channelId,
+                                         UserIdentity userIdentity) throws UserException {
         Table table;
         Locker locker = new Locker();
         locker.lockDatabase(db, LockType.READ);
@@ -194,6 +197,7 @@ public class StreamLoadMgr implements MemoryTrackable {
         long id = GlobalStateMgr.getCurrentState().getNextId();
         StreamLoadTask streamLoadTask = new StreamLoadTask(id, db, (OlapTable) table,
                 label, timeoutMillis, channelNum, channelId, System.currentTimeMillis());
+        streamLoadTask.setUserIdentity(userIdentity);
         return streamLoadTask;
     }
 

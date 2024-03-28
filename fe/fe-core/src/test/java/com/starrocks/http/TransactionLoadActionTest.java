@@ -28,6 +28,7 @@ import com.starrocks.http.rest.TransactionResult;
 import com.starrocks.http.rest.transaction.TransactionOperation;
 import com.starrocks.load.streamload.StreamLoadMgr;
 import com.starrocks.server.GlobalStateMgr;
+import com.starrocks.sql.ast.UserIdentity;
 import com.starrocks.system.Backend;
 import com.starrocks.thrift.TNetworkAddress;
 import com.starrocks.transaction.BeginTransactionException;
@@ -248,7 +249,8 @@ public class TransactionLoadActionTest extends StarRocksHttpTestCase {
             new Expectations() {
                 {
                     streamLoadMgr.beginLoadTask(
-                            anyString, anyString, anyString, anyLong, anyInt, anyInt, (TransactionResult) any);
+                            anyString, anyString, anyString, anyLong, anyInt, anyInt,
+                            (TransactionResult) any, (UserIdentity) any);
                     times = 1;
                     result = new Delegate<Void>() {
 
@@ -284,8 +286,8 @@ public class TransactionLoadActionTest extends StarRocksHttpTestCase {
         {
             new Expectations() {
                 {
-                    streamLoadMgr.beginLoadTask(
-                            anyString, anyString, anyString, anyLong, anyInt, anyInt, (TransactionResult) any);
+                    streamLoadMgr.beginLoadTask(anyString, anyString, anyString, anyLong, anyInt, anyInt,
+                            (TransactionResult) any, (UserIdentity) any);
                     times = 1;
                     result = new UserException("begin load task error");
                 }

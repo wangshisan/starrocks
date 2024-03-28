@@ -59,6 +59,7 @@ import com.starrocks.server.GlobalStateMgr;
 import com.starrocks.sql.analyzer.SemanticException;
 import com.starrocks.sql.ast.ImportColumnDesc;
 import com.starrocks.sql.ast.PartitionNames;
+import com.starrocks.sql.ast.UserIdentity;
 import com.starrocks.sql.optimizer.statistics.ColumnDict;
 import com.starrocks.sql.optimizer.statistics.IDictManager;
 import com.starrocks.thrift.TBrokerFileStatus;
@@ -184,7 +185,7 @@ public class LoadPlanner {
                        boolean strictMode, String timezone, boolean partialUpdate, ConnectContext context,
                        Map<String, String> sessionVariables, long loadMemLimit, long execMemLimit,
                        boolean routimeStreamLoadNegative, int parallelInstanceNum,
-                       List<ImportColumnDesc> columnDescs, StreamLoadInfo streamLoadInfo) {
+                       List<ImportColumnDesc> columnDescs, StreamLoadInfo streamLoadInfo, UserIdentity userIdentity) {
         this.loadJobId = loadJobId;
         this.loadId = loadId;
         this.txnId = txnId;
@@ -199,6 +200,7 @@ public class LoadPlanner {
         } else {
             this.context = new ConnectContext();
         }
+        this.context.setCurrentUserIdentity(userIdentity);
         this.loadMemLimit = loadMemLimit;
         this.execMemLimit = execMemLimit;
         this.isPrimaryKey = ((OlapTable) destTable).getKeysType() == KeysType.PRIMARY_KEYS;
@@ -217,10 +219,10 @@ public class LoadPlanner {
                        boolean strictMode, String timezone, boolean partialUpdate, ConnectContext context,
                        Map<String, String> sessionVariables, long loadMemLimit, long execMemLimit,
                        boolean routimeStreamLoadNegative, int parallelInstanceNum, List<ImportColumnDesc> columnDescs,
-                       StreamLoadInfo streamLoadInfo, String label, long timeoutS) {
+                       StreamLoadInfo streamLoadInfo, String label, long timeoutS, UserIdentity userIdentity) {
         this(loadJobId, loadId, txnId, dbId, dbName, destTable, strictMode, timezone, partialUpdate, context,
                 sessionVariables, loadMemLimit, execMemLimit, routimeStreamLoadNegative, parallelInstanceNum,
-                columnDescs, streamLoadInfo);
+                columnDescs, streamLoadInfo, userIdentity);
         this.label = label;
         this.timeoutS = timeoutS;
         this.etlJobType = EtlJobType.STREAM_LOAD;

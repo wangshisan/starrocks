@@ -49,6 +49,7 @@ import com.starrocks.qe.scheduler.Coordinator;
 import com.starrocks.server.GlobalStateMgr;
 import com.starrocks.service.FrontendOptions;
 import com.starrocks.sql.LoadPlanner;
+import com.starrocks.sql.ast.UserIdentity;
 import com.starrocks.task.LoadEtlTask;
 import com.starrocks.thrift.BackendService;
 import com.starrocks.thrift.TNetworkAddress;
@@ -150,6 +151,8 @@ public class StreamLoadTask extends AbstractTxnStateChangeCallback
     @SerializedName(value = "numLoadBytesTotal")
     private long numLoadBytesTotal;
 
+    @SerializedName(value = "userIdendity")
+    private UserIdentity userIdentity = null;
     // used for sync stream load and routine load
     private boolean isSyncStreamLoad = false;
 
@@ -747,7 +750,7 @@ public class StreamLoadTask extends AbstractTxnStateChangeCallback
                 streamLoadInfo.isStrictMode(), streamLoadInfo.getTimezone(), streamLoadInfo.isPartialUpdate(),
                 null, null, streamLoadInfo.getLoadMemLimit(), streamLoadInfo.getExecMemLimit(),
                 streamLoadInfo.getNegative(), channelNum, streamLoadInfo.getColumnExprDescs(), streamLoadInfo, label,
-                streamLoadInfo.getTimeout());
+                streamLoadInfo.getTimeout(), getUserIdentity());
 
         loadPlanner.plan();
 
@@ -1281,6 +1284,14 @@ public class StreamLoadTask extends AbstractTxnStateChangeCallback
 
     public long getId() {
         return id;
+    }
+
+    public UserIdentity getUserIdentity() {
+        return userIdentity;
+    }
+
+    public void setUserIdentity(UserIdentity userIdentity) {
+        this.userIdentity = userIdentity;
     }
 
     public String getStateName() {
